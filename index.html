@@ -75,6 +75,8 @@ function create() {
     this.cameras.main.startFollow(player);
     this.cameras.main.setDeadzone(0, 200);
 
+    });
+
     // Program collisions
     this.physics.add.collider(player, platforms);
     this.physics.add.overlap(player, protein, reachGoal, null, this);
@@ -198,20 +200,6 @@ function gameOverHandler() {
     restartButton.on('pointerdown', () => {
         gameOver = false;
         score = 0;
-        this.scene.restart();
-    });
-}
-
-    // Optional: Add a restart button
-    const restartButton = this.add.text(400, 600, 'Restart', {
-        fontSize: '32px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 10, y: 5 }
-    });
-    restartButton.setOrigin(0.5);
-    restartButton.setInteractive();
-    restartButton.on('pointerdown', () => {
         this.scene.restart();
     });
 }
