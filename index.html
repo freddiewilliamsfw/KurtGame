@@ -17,12 +17,6 @@ const config = {
             debug: false
         }
     },
-    cameras: {
-        main: {
-            height: 1000,
-            width: 800
-                }
-    },
     scene: {
         preload: preload,
         create: create,
@@ -37,10 +31,6 @@ let platforms;
 let protein;
 let gameOver = false;
 let ground;
-let highestPlatformY;
-let score = 0;
-let scoreText;
-const PLATFORM_VERTICAL_SPACING = 150;
 
 function preload() {
     this.load.image('ground', 'Assets/platform.png');
@@ -56,51 +46,37 @@ function create() {
 
     platforms = this.physics.add.staticGroup();
 
-      // Set world bounds
-    this.physics.world.setBounds(0, -Number.MAX_SAFE_INTEGER, 800, Number.MAX_SAFE_INTEGER * 2);
-    
+    let startPlatform = platforms.create(100, 950, 'dumbell');
+
+    // Add some floating platforms
+    platforms.create(70, 120, 'dumbell');
+    platforms.create(200, 200,'dumbell');    
+    platforms.create(500, 331, 'dumbell');
+    platforms.create(650, 400, 'dumbell');
+    platforms.create(250, 800, 'dumbell');
+    platforms.create(350, 700, 'dumbell');
+    platforms.create(550, 600, 'dumbell');    
+    platforms.create(200, 200,'dumbell');
+    platforms.create(200, 450,'dumbell');
+
     // Player creation and physics
-    let startPlatform = platforms.getChildren()[0]; // Get the first platform
-    player = this.physics.add.sprite(startPlatform.x, startPlatform.y - 50, 'kurt');
+    player = this.physics.add.sprite(100, 850, 'kurt');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
 
-     // Initialize platforms
-    initializePlatforms(this);
+    // Create invisible ground
+    ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
+    this.physics.add.existing(ground, true);
+
+    this.physics.add.collider(player, ground, gameOverHandler, null, this);
+
+    this.physics.add.collider(player, platforms);
 
     // Create the protein
-    createProtein(this);
-
-    // Set up camera to follow player
-    this.cameras.main.startFollow(player);
-    this.cameras.main.setDeadzone(0, 200);
-
-    // Adjust camera bounds
-    this.cameras.main.setBounds(0, -Number.MAX_SAFE_INTEGER, 800, Number.MAX_SAFE_INTEGER * 2);
-
-    });
-
-    // Program collisions
-    this.physics.add.collider(player, platforms);
+    protein = this.physics.add.staticImage(50, 50, 'protein');
+    
+    // Add collision between Kurt and the protein
     this.physics.add.overlap(player, protein, reachGoal, null, this);
-
-    // Create on-screen score
-    scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
-    scoreText.setScrollFactor(0); // This makes the text stay on screen
-        
-}
-function initializePlatforms(scene) {
-    highestPlatformY = 950;
-    for (let i = 0; i < 10; i++) { // Create initial 10 platforms
-        const newPlatform = generatePlatform(scene, highestPlatformY);
-        platforms.add(newPlatform);
-        highestPlatformY -= PLATFORM_VERTICAL_SPACING;
-    }
-}
-
-function generatePlatform(scene, y) {
-    const x = Phaser.Math.Between(50, 750);
-    return scene.physics.add.staticImage(x, y, 'dumbell');
 }
 
 function update() {
@@ -125,66 +101,13 @@ if (gameOver) {
     if (cursors.up.isDown && player.body.touching.down) {
         player.setVelocityY(-330);
     }
-
-    const lowestPlatformY = Math.max(...platforms.children.entries.map(p => p.y));
-    if (player.y > lowestPlatformY + 200) { // 200 is an example value, adjust as needed
-        gameOverHandler.call(this);
-    }
-    
-    
-    // Generate new platforms as the camera moves up
-     if (this.cameras.main.scrollY < highestPlatformY - 500) {
-        const newPlatform = generatePlatform(this, highestPlatformY - PLATFORM_VERTICAL_SPACING);
-        platforms.add(newPlatform);
-        highestPlatformY -= PLATFORM_VERTICAL_SPACING;
-    }
-
-    // Remove platforms that are too low
-    platforms.children.entries.forEach(platform => {
-        if (platform.y > this.cameras.main.scrollY + 1100) {
-            platforms.remove(platform, true, true);
-        }
-    });
 }
-
-function createProtein(scene) {
-    protein = scene.physics.add.staticImage(
-        Phaser.Math.Between(50, 750),
-        highestPlatformY - PLATFORM_VERTICAL_SPACING,
-        'protein'
-    );
-}
-    
 function reachGoal(player, protein) {
     console.log('reachGoal function called');
-    score += 10;
-    scoreText.setText('Score: ' + score);
-
-    // Remove collected protein
-    protein.disableBody(true, true);
-
-    // Generate a new protein at a higher position
-    const newProteinY = protein.y - Phaser.Math.Between(300, 500);
-    const newProtein = this.physics.add.staticImage(
-        Phaser.Math.Between(50, 750),
-        newProteinY,
-        'protein'
-    );
-    this.physics.add.overlap(player, newProtein, reachGoal, null, this);
-
-    const glugText = this.add.text(400, player.y - 100, 'GLUG GLUG', {
-        fontSize: '24px',
-        fill: '#ff0000'
-    });
-    glugText.setOrigin(0.5);
-    this.tweens.add({
-        targets: glugText,
-        alpha: 0,
-        y: glugText.y - 50,
-        duration: 1000,
-        ease: 'Power2',
-        onComplete: () => glugText.destroy()
-    });
+    player.setVelocity(0, 0);
+    player.setX(protein.x + 40);  // Position Kurt next to the protein
+    this.physics.pause();  // Stop the game physics
+    displayGlugGlug.call(this);
 }
 
 function gameOverHandler() {
@@ -192,21 +115,71 @@ function gameOverHandler() {
     this.physics.pause();
     player.setTint(0xff0000);
 
-    let gameOverText = this.add.text(400, this.cameras.main.scrollY + 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
     gameOverText.setOrigin(0.5);
-    gameOverText.setScrollFactor(0);
 
-    let restartButton = this.add.text(400, this.cameras.main.scrollY + 600, 'Restart', { fontSize: '32px', fill: '#000' });
+let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
     restartButton.setOrigin(0.5);
-    restartButton.setScrollFactor(0);
     restartButton.setInteractive();
     restartButton.on('pointerdown', () => {
         gameOver = false;
-        score = 0;
         this.scene.restart();
     });
+}
+
+
+function displayGlugGlug() {
+    const glugText = this.add.text(400, 500, 'GLUG GLUG', {
+        fontSize: '64px',
+        fill: '#ff0000',
+        fontStyle: 'bold'
+    });
+    glugText.setOrigin(0.5);
+    
+    // Optional: Add a simple animation to make the text more eye-catching
+    this.tweens.add({
+        targets: glugText,
+        scale: 1.2,
+        duration: 500,
+        yoyo: true,
+        repeat: -1
+    });
+
+    // Optional: Add a restart button
+    const restartButton = this.add.text(400, 600, 'Restart', {
+        fontSize: '32px',
+        fill: '#ffffff',
+        backgroundColor: '#000000',
+        padding: { x: 10, y: 5 }
+    });
+    restartButton.setOrigin(0.5);
+    restartButton.setInteractive();
+    restartButton.on('pointerdown', () => {
+        this.scene.restart();
+    });
+}
+
+function createColumn(x, rows, fontSize) {
+    for (let j = 0; j < rows; j++) {
+        let y = j * (fontSize + 5);
+        let digit = Phaser.Math.Between(0, 9);
+        let text = this.add.text(x, y, digit, { fontSize: `${fontSize}px`, fill: '#0f0' });
+        
+        this.tweens.add({
+            targets: text,
+            y: `+=${this.sys.game.config.height}`,
+            duration: 5000,
+            ease: 'Linear',
+            repeat: -1,
+            onUpdate: () => {
+                text.setText(Phaser.Math.Between(0, 9));
+            }
+        });
+    }
 }
 
 </script>
 </body>
 </html>
+
+
