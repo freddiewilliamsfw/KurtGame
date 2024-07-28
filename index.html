@@ -17,13 +17,6 @@ const config = {
             debug: false
         }
     },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 300 },
-            debug: false
-                }
-    },
     cameras: {
         main: {
             height: 1000,
@@ -66,10 +59,6 @@ function create() {
 
     // Set world bounds
     this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER);
-
-    // Set up camera to follow player
-    this.cameras.main.startFollow(player);
-    this.cameras.main.setDeadzone(0, 200);
     
     // Add some floating platforms
     platforms.create(70, 120, 'dumbell');
@@ -90,7 +79,11 @@ function create() {
     player = this.physics.add.sprite(100, 850, 'kurt');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
-
+    
+    // Set up camera to follow player
+    this.cameras.main.startFollow(player);
+    this.cameras.main.setDeadzone(0, 200);
+    
     // Create invisible ground
     ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
     this.physics.add.existing(ground, true);
@@ -145,7 +138,7 @@ if (gameOver) {
         if (platform.y > this.cameras.main.scrollY + 1100) {
             platforms.remove(platform, true, true);
         }
-    
+    });
 }
 function reachGoal(player, protein) {
     console.log('reachGoal function called');
