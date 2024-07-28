@@ -42,8 +42,6 @@ let score = 0;
 let scoreText;
 const PLATFORM_VERTICAL_SPACING = 150;
 
-let startPlatform = platforms.create(100, 950, 'dumbell');
-
 function preload() {
     this.load.image('ground', 'Assets/platform.png');
     this.load.image('dumbell', 'Assets/dumbell.png');
@@ -69,13 +67,13 @@ function create() {
      // Initialize platforms
     initializePlatforms(this);
 
+    // Create the protein
+    createProtein(this);
+
     // Set up camera to follow player
     this.time.delayedCall(100, () => {
     this.cameras.main.startFollow(player);
     this.cameras.main.setDeadzone(0, 200);
-
-    // Create the protein
-    createProtein(this);
 
     // Program collisions
     this.physics.add.collider(player, platforms);
@@ -84,8 +82,6 @@ function create() {
     // Create on-screen score
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
     scoreText.setScrollFactor(0); // This makes the text stay on screen
-        
-]
         
 }
 function initializePlatforms(scene) {
@@ -133,9 +129,9 @@ if (gameOver) {
     
     // Generate new platforms as the camera moves up
      if (this.cameras.main.scrollY < highestPlatformY - 500) {
-        const newPlatform = generatePlatform(this, highestPlatformY - 200);
+        const newPlatform = generatePlatform(this, highestPlatformY - PLATFORM_VERTICAL_SPACING);
         platforms.add(newPlatform);
-        highestPlatformY -= 200;
+        highestPlatformY -= PLATFORM_VERTICAL_SPACING;
     }
 
     // Remove platforms that are too low
@@ -206,24 +202,6 @@ function gameOverHandler() {
     });
 }
 
-
-function displayGlugGlug() {
-    const glugText = this.add.text(400, 500, 'GLUG GLUG', {
-        fontSize: '64px',
-        fill: '#ff0000',
-        fontStyle: 'bold'
-    });
-    glugText.setOrigin(0.5);
-    
-    // Optional: Add a simple animation to make the text more eye-catching
-    this.tweens.add({
-        targets: glugText,
-        scale: 1.2,
-        duration: 500,
-        yoyo: true,
-        repeat: -1
-    });
-
     // Optional: Add a restart button
     const restartButton = this.add.text(400, 600, 'Restart', {
         fontSize: '32px',
@@ -236,25 +214,6 @@ function displayGlugGlug() {
     restartButton.on('pointerdown', () => {
         this.scene.restart();
     });
-}
-
-function createColumn(x, rows, fontSize) {
-    for (let j = 0; j < rows; j++) {
-        let y = j * (fontSize + 5);
-        let digit = Phaser.Math.Between(0, 9);
-        let text = this.add.text(x, y, digit, { fontSize: `${fontSize}px`, fill: '#0f0' });
-        
-        this.tweens.add({
-            targets: text,
-            y: `+=${this.sys.game.config.height}`,
-            duration: 5000,
-            ease: 'Linear',
-            repeat: -1,
-            onUpdate: () => {
-                text.setText(Phaser.Math.Between(0, 9));
-            }
-        });
-    }
 }
 
 </script>
