@@ -37,9 +37,12 @@ let platforms;
 let protein;
 let gameOver = false;
 let ground;
-let highestPlatformY = 950;
+let highestPlatformY;
 let score = 0;
 let scoreText;
+const PLATFORM_VERTICAL_SPACING = 150;
+
+let startPlatform = platforms.create(100, 950, 'dumbell');
 
 function preload() {
     this.load.image('ground', 'Assets/platform.png');
@@ -55,47 +58,43 @@ function create() {
 
     platforms = this.physics.add.staticGroup();
 
-    let startPlatform = platforms.create(100, 950, 'dumbell');
-
-    // Set world bounds
-    this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER);
-    
-    // Add some floating platforms
-    platforms.create(70, 120, 'dumbell');
-    platforms.create(200, 200,'dumbell');    
-    platforms.create(500, 331, 'dumbell');
-    platforms.create(650, 400, 'dumbell');
-    platforms.create(250, 800, 'dumbell');
-    platforms.create(350, 700, 'dumbell');
-    platforms.create(550, 600, 'dumbell');    
-    platforms.create(200, 200,'dumbell');
-    platforms.create(200, 450,'dumbell');
-
-    // Create on-screen score
-    scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
-    scoreText.setScrollFactor(0); // This makes the text stay on screen
+      // Set world bounds
+    this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER); 
     
     // Player creation and physics
     player = this.physics.add.sprite(100, 850, 'kurt');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
-    
+
+     // Initialize platforms
+    initializePlatforms(this);
+
     // Set up camera to follow player
+    this.time.delayedCall(100, () => {
     this.cameras.main.startFollow(player);
     this.cameras.main.setDeadzone(0, 200);
-    
-    // Create invisible ground
-    ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
-    this.physics.add.existing(ground, true);
 
-     // Program collisions
-    this.physics.add.collider(player, ground, gameOverHandler, null, this);
+    // Create the protein
+    createProtein(this);
+
+    // Program collisions
     this.physics.add.collider(player, platforms);
     this.physics.add.overlap(player, protein, reachGoal, null, this);
 
-    // Create the protein
-    protein = this.physics.add.staticImage(50, 50, 'protein');
-    
+    // Create on-screen score
+    scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+    scoreText.setScrollFactor(0); // This makes the text stay on screen
+        
+]
+        
+}
+function initializePlatforms(scene) {
+    highestPlatformY = 950;
+    for (let i = 0; i < 10; i++) { // Create initial 10 platforms
+        const newPlatform = generatePlatform(scene, highestPlatformY);
+        platforms.add(newPlatform);
+        highestPlatformY -= PLATFORM_VERTICAL_SPACING;
+    }
 }
 
 function generatePlatform(scene, y) {
@@ -125,6 +124,12 @@ if (gameOver) {
     if (cursors.up.isDown && player.body.touching.down) {
         player.setVelocityY(-330);
     }
+
+    const lowestPlatformY = Math.max(...platforms.children.entries.map(p => p.y));
+    if (player.y > lowestPlatformY + 200) { // 200 is an example value, adjust as needed
+        gameOverHandler.call(this);
+    }
+    
     
     // Generate new platforms as the camera moves up
      if (this.cameras.main.scrollY < highestPlatformY - 500) {
@@ -140,6 +145,15 @@ if (gameOver) {
         }
     });
 }
+
+function createProtein(scene) {
+    protein = scene.physics.add.staticImage(
+        Phaser.Math.Between(50, 750),
+        highestPlatformY - PLATFORM_VERTICAL_SPACING,
+        'protein'
+    );
+}
+    
 function reachGoal(player, protein) {
     console.log('reachGoal function called');
     score += 10;
@@ -177,14 +191,17 @@ function gameOverHandler() {
     this.physics.pause();
     player.setTint(0xff0000);
 
-let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+    let gameOverText = this.add.text(400, this.cameras.main.scrollY + 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
     gameOverText.setOrigin(0.5);
+    gameOverText.setScrollFactor(0);
 
-let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
+    let restartButton = this.add.text(400, this.cameras.main.scrollY + 600, 'Restart', { fontSize: '32px', fill: '#000' });
     restartButton.setOrigin(0.5);
+    restartButton.setScrollFactor(0);
     restartButton.setInteractive();
     restartButton.on('pointerdown', () => {
         gameOver = false;
+        score = 0;
         this.scene.restart();
     });
 }
