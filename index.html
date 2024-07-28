@@ -17,6 +17,19 @@ const config = {
             debug: false
         }
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 300 },
+            debug: false
+                }
+    },
+    cameras: {
+        main: {
+            height: 1000,
+            width: 800
+                }
+    },
     scene: {
         preload: preload,
         create: create,
@@ -31,6 +44,7 @@ let platforms;
 let protein;
 let gameOver = false;
 let ground;
+let highestPlatformY = 950;
 
 function preload() {
     this.load.image('ground', 'Assets/platform.png');
@@ -48,6 +62,13 @@ function create() {
 
     let startPlatform = platforms.create(100, 950, 'dumbell');
 
+    // Set world bounds
+    this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER);
+
+    // Set up camera to follow player
+    this.cameras.main.startFollow(player);
+    this.cameras.main.setDeadzone(0, 200);
+    
     // Add some floating platforms
     platforms.create(70, 120, 'dumbell');
     platforms.create(200, 200,'dumbell');    
@@ -68,15 +89,19 @@ function create() {
     ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
     this.physics.add.existing(ground, true);
 
+     // Program collisions
     this.physics.add.collider(player, ground, gameOverHandler, null, this);
-
     this.physics.add.collider(player, platforms);
+    this.physics.add.overlap(player, protein, reachGoal, null, this);
 
     // Create the protein
     protein = this.physics.add.staticImage(50, 50, 'protein');
     
-    // Add collision between Kurt and the protein
-    this.physics.add.overlap(player, protein, reachGoal, null, this);
+}
+
+function generatePlatform(scene, y) {
+    const x = Phaser.Math.Between(50, 750);
+    return scene.physics.add.staticImage(x, y, 'dumbell');
 }
 
 function update() {
@@ -101,6 +126,20 @@ if (gameOver) {
     if (cursors.up.isDown && player.body.touching.down) {
         player.setVelocityY(-330);
     }
+    
+    // Generate new platforms as the camera moves up
+     if (this.cameras.main.scrollY < highestPlatformY - 500) {
+        const newPlatform = generatePlatform(this, highestPlatformY - 200);
+        platforms.add(newPlatform);
+        highestPlatformY -= 200;
+    }
+
+    // Remove platforms that are too low
+    platforms.children.entries.forEach(platform => {
+        if (platform.y > this.cameras.main.scrollY + 1100) {
+            platforms.remove(platform, true, true);
+        }
+    
 }
 function reachGoal(player, protein) {
     console.log('reachGoal function called');
