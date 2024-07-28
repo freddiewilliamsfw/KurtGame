@@ -57,7 +57,7 @@ function create() {
     platforms = this.physics.add.staticGroup();
 
       // Set world bounds
-    this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER); 
+    this.physics.world.setBounds(0, -Number.MAX_SAFE_INTEGER, 800, Number.MAX_SAFE_INTEGER * 2);
     
     // Player creation and physics
     let startPlatform = platforms.getChildren()[0]; // Get the first platform
@@ -72,9 +72,11 @@ function create() {
     createProtein(this);
 
     // Set up camera to follow player
-    this.time.delayedCall(100, () => {
     this.cameras.main.startFollow(player);
     this.cameras.main.setDeadzone(0, 200);
+
+    // Adjust camera bounds
+    this.cameras.main.setBounds(0, -Number.MAX_SAFE_INTEGER, 800, Number.MAX_SAFE_INTEGER * 2);
 
     });
 
