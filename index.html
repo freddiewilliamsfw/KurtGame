@@ -60,7 +60,8 @@ function create() {
     this.physics.world.setBounds(0, 0, 800, Number.MAX_SAFE_INTEGER); 
     
     // Player creation and physics
-    player = this.physics.add.sprite(100, 850, 'kurt');
+    let startPlatform = platforms.getChildren()[0]; // Get the first platform
+    player = this.physics.add.sprite(startPlatform.x, startPlatform.y - 50, 'kurt');
     player.setBounce(0.2);
     player.setCollideWorldBounds(true);
 
