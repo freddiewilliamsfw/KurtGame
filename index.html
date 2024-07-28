@@ -45,6 +45,8 @@ let protein;
 let gameOver = false;
 let ground;
 let highestPlatformY = 950;
+let score = 0;
+let scoreText;
 
 function preload() {
     this.load.image('ground', 'Assets/platform.png');
@@ -80,6 +82,10 @@ function create() {
     platforms.create(200, 200,'dumbell');
     platforms.create(200, 450,'dumbell');
 
+    // Create on-screen score
+    scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+    scoreText.setScrollFactor(0); // This makes the text stay on screen
+    
     // Player creation and physics
     player = this.physics.add.sprite(100, 850, 'kurt');
     player.setBounce(0.2);
@@ -143,10 +149,34 @@ if (gameOver) {
 }
 function reachGoal(player, protein) {
     console.log('reachGoal function called');
-    player.setVelocity(0, 0);
-    player.setX(protein.x + 40);  // Position Kurt next to the protein
-    this.physics.pause();  // Stop the game physics
-    displayGlugGlug.call(this);
+    score += 10;
+    scoreText.setText('Score: ' + score);
+
+    // Remove collected protein
+    protein.disableBody(true, true);
+
+    // Generate a new protein at a higher position
+    const newProteinY = protein.y - Phaser.Math.Between(300, 500);
+    const newProtein = this.physics.add.staticImage(
+        Phaser.Math.Between(50, 750),
+        newProteinY,
+        'protein'
+    );
+    this.physics.add.overlap(player, newProtein, reachGoal, null, this);
+
+    const glugText = this.add.text(400, player.y - 100, 'GLUG GLUG', {
+        fontSize: '24px',
+        fill: '#ff0000'
+    });
+    glugText.setOrigin(0.5);
+    this.tweens.add({
+        targets: glugText,
+        alpha: 0,
+        y: glugText.y - 50,
+        duration: 1000,
+        ease: 'Power2',
+        onComplete: () => glugText.destroy()
+    });
 }
 
 function gameOverHandler() {
