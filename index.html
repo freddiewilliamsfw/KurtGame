@@ -38,6 +38,7 @@ function preload() {
     this.load.image('kurt', 'Assets/kurt.png');
     this.load.image('protein', 'Assets/protein.png');
     this.load.image('background', 'Assets/background.png');
+    this.load.audio('glug','Assets/glug.m4a');
 }
 
 function create() {
@@ -77,6 +78,9 @@ function create() {
     
     // Add collision between Kurt and the protein
     this.physics.add.overlap(player, protein, reachGoal, null, this);
+
+    //Create glug music
+    this.glugSound = this.sound.add('glug');
 }
 
 function update() {
@@ -108,6 +112,7 @@ function reachGoal(player, protein) {
     player.setX(protein.x + 40);  // Position Kurt next to the protein
     this.physics.pause();  // Stop the game physics
     displayGlugGlug.call(this);
+    this.glugSound.play();
 }
 
 function gameOverHandler() {
