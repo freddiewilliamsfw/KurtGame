@@ -46,7 +46,10 @@
         this.add.image(400, 500, 'background');
 
         platforms = this.physics.add.staticGroup();
-        let startPlatform = platforms.create(100, 950, 'dumbell');
+        
+        // Create the ground
+        ground = platforms.create(400, 985, 'ground');
+        ground.setScale(2, 0.5).refreshBody(); // Adjust scale as needed
 
         // Add some floating platforms
         platforms.create(70, 120, 'dumbell');
@@ -63,11 +66,6 @@
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
 
-        // Create invisible ground
-        ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
-        this.physics.add.existing(ground, true);
-
-        this.physics.add.collider(player, ground, gameOverHandler, null, this);
         this.physics.add.collider(player, platforms);
 
         // Create proteins group
@@ -79,9 +77,6 @@
 
         // Add collision between proteins and platforms
         this.physics.add.collider(proteins, platforms);
-
-        // Add collision between proteins and ground
-        this.physics.add.collider(proteins, ground);
 
         // Create glug music
         this.glugSound = this.sound.add('glug');
@@ -151,23 +146,6 @@
         platforms.create(x, y, 'dumbell');
     }
 
-    function gameOverHandler() {
-        gameOver = true;
-        this.physics.pause();
-        player.setTint(0xff0000);
-
-        let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
-        gameOverText.setOrigin(0.5);
-
-        let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
-        restartButton.setOrigin(0.5);
-        restartButton.setInteractive();
-        restartButton.on('pointerdown', () => {
-            gameOver = false;
-            score = 0;
-            this.scene.restart();
-        });
-    }
     </script>
 </body>
 </html>
