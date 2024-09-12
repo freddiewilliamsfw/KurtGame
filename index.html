@@ -12,7 +12,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 300 },
+                gravity: { y: 600 }, // Increased gravity
                 debug: false
             }
         },
@@ -33,7 +33,7 @@
     let scoreText;
     let timerText;
     let gameOver = false;
-    let timeLeft = 10; // Start with 10 seconds
+    let timeLeft = 10;
     let timerEvent;
     let gameOverText;
     let restartButton;
@@ -71,8 +71,8 @@
         createPlatform(this, 650, 125);
 
         // Player creation and physics
-        player = this.physics.add.sprite(400, 800, 'kurt'); // Adjusted starting height
-        player.setBounce(0.2);
+        player = this.physics.add.sprite(400, 800, 'kurt');
+        player.setBounce(0.1); // Reduced bounce for less floaty feel
         player.setCollideWorldBounds(true);
 
         // Adjust player's physics body if necessary
@@ -124,17 +124,17 @@
         const cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
-            player.setVelocityX(-160);
+            player.setVelocityX(-220); // Increased horizontal speed
             player.setFlipX(true);
         } else if (cursors.right.isDown) {
-            player.setVelocityX(160);
+            player.setVelocityX(220); // Increased horizontal speed
             player.setFlipX(false);
         } else {
             player.setVelocityX(0);
         }
 
         if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-330);
+            player.setVelocityY(-450); // Adjusted jump velocity for less floaty feel
         }
 
         // Update timer text
@@ -158,8 +158,31 @@
     }
 
     function spawnProtein(scene) {
-        let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(0, 800);
+        let x, y;
+        let validPosition = false;
+
+        while (!validPosition) {
+            x = Phaser.Math.Between(0, 800);
+            y = Phaser.Math.Between(0, 800);
+
+            // Check if the position is not on the ground and not overlapping with platforms
+            let tooLow = y > 900;
+            let overlapsPlatform = false;
+
+            platforms.children.entries.forEach((platform) => {
+                if (Phaser.Geom.Intersects.RectangleToRectangle(
+                    new Phaser.Geom.Rectangle(x - 20, y - 20, 40, 40),
+                    platform.getBounds()
+                )) {
+                    overlapsPlatform = true;
+                }
+            });
+
+            if (!tooLow && !overlapsPlatform) {
+                validPosition = true;
+            }
+        }
+
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
         protein.setCollideWorldBounds(true);
@@ -168,7 +191,7 @@
     function initGameState(scene) {
         score = 0;
         gameOver = false;
-        timeLeft = 10; // Start with 10 seconds
+        timeLeft = 10;
         proteinsCollected = 0;
         
         scoreText.setText('Score: 0');
@@ -180,7 +203,7 @@
             timerEvent.remove();
         }
         timerEvent = scene.time.addEvent({
-            delay: 100, // Update every 0.1 seconds for smoother countdown
+            delay: 100,
             callback: updateTimer,
             callbackScope: scene,
             loop: true
@@ -190,19 +213,18 @@
     function updateTimer() {
         if (gameOver) return;
         
-        timeLeft -= 0.1; // Decrease by 0.1 seconds
+        timeLeft -= 0.1;
         if (timeLeft <= 0) {
             gameOverHandler.call(this, player);
         }
     }
 
     function resetTimer(scene) {
-        // Progressively decrease time, but never go below 3 seconds
         timeLeft = Math.max(10 - proteinsCollected * 0.5, 3);
     }
 
     function gameOverHandler(player) {
-        if (gameOver) return;  // Prevent multiple calls
+        if (gameOver) return;
 
         this.physics.pause();
         player.setTint(0xff0000);
@@ -224,24 +246,18 @@
     }
 
     function restartGame(scene) {
-        // Reset player position
         player.setPosition(400, 800);
         player.clearTint();
 
-        // Clear existing proteins
         proteins.clear(true, true);
 
-        // Spawn a new protein
         spawnProtein(scene);
 
-        // Remove game over text and restart button
         if (gameOverText) gameOverText.destroy();
         if (restartButton) restartButton.destroy();
 
-        // Reset game state
         initGameState(scene);
 
-        // Resume physics
         scene.physics.resume();
     }
 
