@@ -12,7 +12,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 600 },
+                gravity: { y: 300 },
                 debug: false
             }
         },
@@ -138,9 +138,9 @@
         // Update timer text
         timerText.setText('Time: ' + Math.ceil(timeLeft));
 
-        // Check if any protein has fallen too low
+        // Check if any protein has fallen below the screen
         proteins.children.entries.forEach((protein) => {
-            if (protein.y > 950) {  // Adjust this value as needed
+            if (protein.y > 1000) {
                 respawnProtein(this, protein);
             }
         });
@@ -167,12 +167,12 @@
         let y = Phaser.Math.Between(50, 700);
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
-        protein.setCollideWorldBounds(true);
+        protein.setCollideWorldBounds(false);  // Allow proteins to fall through the bottom
         protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
     }
 
     function respawnProtein(scene, protein) {
-        protein.setPosition(Phaser.Math.Between(50, 750), Phaser.Math.Between(50, 700));
+        protein.setPosition(Phaser.Math.Between(50, 750), Phaser.Math.Between(50, 300));
         protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
     }
 
