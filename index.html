@@ -12,7 +12,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 300 },
+                gravity: { y: 600 },  // Restored to previous value
                 debug: false
             }
         },
@@ -122,17 +122,17 @@
         const cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
-            player.setVelocityX(-220);
+            player.setVelocityX(-160);  // Restored to previous speed
             player.setFlipX(true);
         } else if (cursors.right.isDown) {
-            player.setVelocityX(220);
+            player.setVelocityX(160);   // Restored to previous speed
             player.setFlipX(false);
         } else {
             player.setVelocityX(0);
         }
 
         if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-450);
+            player.setVelocityY(-330);  // Restored to previous jump velocity
         }
 
         // Update timer text
