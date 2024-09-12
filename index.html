@@ -5,186 +5,153 @@
 </head>
 <body>
     <script>
-
-const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 1000,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 300 },
-            debug: false
-        }
-    },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
-};
-
-const game = new Phaser.Game(config);
-
-let player;
-let platforms;
-let protein;
-let gameOver = false;
-let ground;
-
-function preload() {
-    this.load.image('ground', 'Assets/platform.png');
-    this.load.image('dumbell', 'Assets/dumbell.png');
-    this.load.image('kurt', 'Assets/kurt.png');
-    this.load.image('protein', 'Assets/protein.png');
-    this.load.image('background', 'Assets/background.png');
-    this.load.audio('glug','Assets/glug.m4a');
-}
-
-function create() {
-
-    this.add.image(400, 500, 'background')
-
-    platforms = this.physics.add.staticGroup();
-
-    let startPlatform = platforms.create(100, 950, 'dumbell');
-
-    // Add some floating platforms
-    platforms.create(70, 120, 'dumbell');
-    platforms.create(200, 200,'dumbell');    
-    platforms.create(500, 301, 'dumbell');
-    platforms.create(650, 400, 'dumbell');
-    platforms.create(250, 800, 'dumbell');
-    platforms.create(350, 700, 'dumbell');
-    platforms.create(550, 600, 'dumbell');    
-    platforms.create(200, 200,'dumbell');
-    platforms.create(200, 450,'dumbell');
-
-    // Player creation and physics
-    player = this.physics.add.sprite(100, 850, 'kurt');
-    player.setBounce(0.2);
-    player.setCollideWorldBounds(true);
-
-    // Create invisible ground
-    ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
-    this.physics.add.existing(ground, true);
-
-    this.physics.add.collider(player, ground, gameOverHandler, null, this);
-
-    this.physics.add.collider(player, platforms);
-
-    // Create the protein
-    protein = this.physics.add.staticImage(50, 50, 'protein');
-    
-    // Add collision between Kurt and the protein
-    this.physics.add.overlap(player, protein, reachGoal, null, this);
-
-    //Create glug music
-    this.glugSound = this.sound.add('glug');
-}
-
-function update() {
-if (gameOver) {
-        return;
-
-}
-
-    const cursors = this.input.keyboard.createCursorKeys();
-
-    if (cursors.left.isDown) {
-        player.setVelocityX(-160);
-        player.setFlipX(true);  // Flip the sprite to face left
-    } else if (cursors.right.isDown) {
-        player.setVelocityX(160);
-        player.setFlipX(false);  // Return the sprite to its original orientation
-    } else {
-        player.setVelocityX(0);
-        // Optionally, you can add an idle animation or change the frame here
-    }
-
-    if (cursors.up.isDown && player.body.touching.down) {
-        player.setVelocityY(-330);
-    }
-}
-function reachGoal(player, protein) {
-    console.log('reachGoal function called');
-    player.setVelocity(0, 0);
-    player.setX(protein.x + 40);  // Position Kurt next to the protein
-    this.physics.pause();  // Stop the game physics
-    displayGlugGlug.call(this);
-    this.glugSound.play();
-}
-
-function gameOverHandler() {
-    gameOver = true;
-    this.physics.pause();
-    player.setTint(0xff0000);
-
-let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
-    gameOverText.setOrigin(0.5);
-
-let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
-    restartButton.setOrigin(0.5);
-    restartButton.setInteractive();
-    restartButton.on('pointerdown', () => {
-        gameOver = false;
-        this.scene.restart();
-    });
-}
-
-
-function displayGlugGlug() {
-    const glugText = this.add.text(400, 500, 'GLUG GLUG', {
-        fontSize: '64px',
-        fill: '#ff0000',
-        fontStyle: 'bold'
-    });
-    glugText.setOrigin(0.5);
-    
-    // Optional: Add a simple animation to make the text more eye-catching
-    this.tweens.add({
-        targets: glugText,
-        scale: 1.2,
-        duration: 500,
-        yoyo: true,
-        repeat: -1
-    });
-
-    // Optional: Add a restart button
-    const restartButton = this.add.text(400, 600, 'Restart', {
-        fontSize: '32px',
-        fill: '#ffffff',
-        backgroundColor: '#000000',
-        padding: { x: 10, y: 5 }
-    });
-    restartButton.setOrigin(0.5);
-    restartButton.setInteractive();
-    restartButton.on('pointerdown', () => {
-        this.scene.restart();
-    });
-}
-
-function createColumn(x, rows, fontSize) {
-    for (let j = 0; j < rows; j++) {
-        let y = j * (fontSize + 5);
-        let digit = Phaser.Math.Between(0, 9);
-        let text = this.add.text(x, y, digit, { fontSize: `${fontSize}px`, fill: '#0f0' });
-        
-        this.tweens.add({
-            targets: text,
-            y: `+=${this.sys.game.config.height}`,
-            duration: 5000,
-            ease: 'Linear',
-            repeat: -1,
-            onUpdate: () => {
-                text.setText(Phaser.Math.Between(0, 9));
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 1000,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 300 },
+                debug: false
             }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let player;
+    let platforms;
+    let proteins;
+    let gameOver = false;
+    let ground;
+    let score = 0;
+    let scoreText;
+
+    function preload() {
+        this.load.image('ground', 'Assets/platform.png');
+        this.load.image('dumbell', 'Assets/dumbell.png');
+        this.load.image('kurt', 'Assets/kurt.png');
+        this.load.image('protein', 'Assets/protein.png');
+        this.load.image('background', 'Assets/background.png');
+        this.load.audio('glug','Assets/glug.m4a');
+    }
+
+    function create() {
+        this.add.image(400, 500, 'background');
+
+        platforms = this.physics.add.staticGroup();
+        let startPlatform = platforms.create(100, 950, 'dumbell');
+
+        // Add some floating platforms
+        platforms.create(70, 120, 'dumbell');
+        platforms.create(200, 200,'dumbell');    
+        platforms.create(500, 301, 'dumbell');
+        platforms.create(650, 400, 'dumbell');
+        platforms.create(250, 800, 'dumbell');
+        platforms.create(350, 700, 'dumbell');
+        platforms.create(550, 600, 'dumbell');    
+        platforms.create(200, 450,'dumbell');
+
+        // Player creation and physics
+        player = this.physics.add.sprite(100, 850, 'kurt');
+        player.setBounce(0.2);
+        player.setCollideWorldBounds(true);
+
+        // Create invisible ground
+        ground = this.add.rectangle(400, 990, 800, 20, 0x000000);
+        this.physics.add.existing(ground, true);
+
+        this.physics.add.collider(player, ground, gameOverHandler, null, this);
+        this.physics.add.collider(player, platforms);
+
+        // Create proteins group
+        proteins = this.physics.add.group();
+        spawnProtein(this);
+
+        // Add collision between Kurt and the proteins
+        this.physics.add.overlap(player, proteins, collectProtein, null, this);
+
+        // Create glug music
+        this.glugSound = this.sound.add('glug');
+
+        // Add score text
+        scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+    }
+
+    function update() {
+        if (gameOver) {
+            return;
+        }
+
+        const cursors = this.input.keyboard.createCursorKeys();
+
+        if (cursors.left.isDown) {
+            player.setVelocityX(-160);
+            player.setFlipX(true);
+        } else if (cursors.right.isDown) {
+            player.setVelocityX(160);
+            player.setFlipX(false);
+        } else {
+            player.setVelocityX(0);
+        }
+
+        if (cursors.up.isDown && player.body.touching.down) {
+            player.setVelocityY(-330);
+        }
+    }
+
+    function collectProtein(player, protein) {
+        protein.disableBody(true, true);
+        
+        score += 10;
+        scoreText.setText('Score: ' + score);
+
+        this.glugSound.play();
+
+        // Spawn a new protein
+        spawnProtein(this);
+
+        // Optionally, spawn a new platform
+        if (score % 50 === 0) {
+            spawnPlatform(this);
+        }
+    }
+
+    function spawnProtein(scene) {
+        let x = Phaser.Math.Between(0, 800);
+        let y = Phaser.Math.Between(0, 600);
+        proteins.create(x, y, 'protein');
+    }
+
+    function spawnPlatform(scene) {
+        let x = Phaser.Math.Between(0, 800);
+        let y = Phaser.Math.Between(100, 900);
+        platforms.create(x, y, 'dumbell');
+    }
+
+    function gameOverHandler() {
+        gameOver = true;
+        this.physics.pause();
+        player.setTint(0xff0000);
+
+        let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+        gameOverText.setOrigin(0.5);
+
+        let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        restartButton.on('pointerdown', () => {
+            gameOver = false;
+            score = 0;
+            this.scene.restart();
         });
     }
-}
-
-</script>
+    </script>
 </body>
 </html>
-
-
