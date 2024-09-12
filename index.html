@@ -33,8 +33,11 @@
     let scoreText;
     let timerText;
     let gameOver = false;
-    let timeLeft = 5;
+    let timeLeft = 10; // Start with 10 seconds
     let timerEvent;
+    let gameOverText;
+    let restartButton;
+    let proteinsCollected = 0;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -96,7 +99,7 @@
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
 
         // Add timer text
-        timerText = this.add.text(600, 16, 'Time: 5', { fontSize: '32px', fill: '#000' });
+        timerText = this.add.text(600, 16, 'Time: 10', { fontSize: '32px', fill: '#000' });
 
         // Initialize game state
         initGameState(this);
@@ -149,7 +152,8 @@
         // Spawn a new protein
         spawnProtein(this);
 
-        // Reset the timer
+        // Reset the timer with progressively less time
+        proteinsCollected++;
         resetTimer(this);
     }
 
@@ -164,7 +168,8 @@
     function initGameState(scene) {
         score = 0;
         gameOver = false;
-        timeLeft = 5;
+        timeLeft = 10; // Start with 10 seconds
+        proteinsCollected = 0;
         
         scoreText.setText('Score: 0');
         startTimer(scene);
@@ -174,9 +179,8 @@
         if (timerEvent) {
             timerEvent.remove();
         }
-        timeLeft = 5;
         timerEvent = scene.time.addEvent({
-            delay: 1000,
+            delay: 100, // Update every 0.1 seconds for smoother countdown
             callback: updateTimer,
             callbackScope: scene,
             loop: true
@@ -186,14 +190,15 @@
     function updateTimer() {
         if (gameOver) return;
         
-        timeLeft -= 1;
-        if (timeLeft < 0) {
+        timeLeft -= 0.1; // Decrease by 0.1 seconds
+        if (timeLeft <= 0) {
             gameOverHandler.call(this, player);
         }
     }
 
     function resetTimer(scene) {
-        timeLeft = 5;
+        // Progressively decrease time, but never go below 3 seconds
+        timeLeft = Math.max(10 - proteinsCollected * 0.5, 3);
     }
 
     function gameOverHandler(player) {
@@ -207,10 +212,10 @@
             timerEvent.remove();
         }
 
-        let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+        gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
         gameOverText.setOrigin(0.5);
 
-        let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
+        restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         restartButton.on('pointerdown', () => {
@@ -228,6 +233,10 @@
 
         // Spawn a new protein
         spawnProtein(scene);
+
+        // Remove game over text and restart button
+        if (gameOverText) gameOverText.destroy();
+        if (restartButton) restartButton.destroy();
 
         // Reset game state
         initGameState(scene);
