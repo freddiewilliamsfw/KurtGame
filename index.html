@@ -139,6 +139,14 @@
 
         // Update timer text
         timerText.setText('Time: ' + Math.ceil(timeLeft));
+
+        // Check if any protein has fallen off the screen
+        proteins.children.entries.forEach((protein) => {
+            if (protein.y > 1000) {
+                protein.destroy();
+                spawnProtein(this);
+            }
+        });
     }
 
     function collectProtein(player, protein) {
@@ -158,31 +166,8 @@
     }
 
     function spawnProtein(scene) {
-        let x, y;
-        let validPosition = false;
-
-        while (!validPosition) {
-            x = Phaser.Math.Between(0, 800);
-            y = Phaser.Math.Between(0, 800);
-
-            // Check if the position is not on the ground and not overlapping with platforms
-            let tooLow = y > 900;
-            let overlapsPlatform = false;
-
-            platforms.children.entries.forEach((platform) => {
-                if (Phaser.Geom.Intersects.RectangleToRectangle(
-                    new Phaser.Geom.Rectangle(x - 20, y - 20, 40, 40),
-                    platform.getBounds()
-                )) {
-                    overlapsPlatform = true;
-                }
-            });
-
-            if (!tooLow && !overlapsPlatform) {
-                validPosition = true;
-            }
-        }
-
+        let x = Phaser.Math.Between(0, 800);
+        let y = Phaser.Math.Between(0, 800);
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
         protein.setCollideWorldBounds(true);
