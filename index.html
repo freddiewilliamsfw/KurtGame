@@ -77,6 +77,12 @@
         // Add collision between Kurt and the proteins
         this.physics.add.overlap(player, proteins, collectProtein, null, this);
 
+        // Add collision between proteins and platforms
+        this.physics.add.collider(proteins, platforms);
+
+        // Add collision between proteins and ground
+        this.physics.add.collider(proteins, ground);
+
         // Create glug music
         this.glugSound = this.sound.add('glug');
 
@@ -104,6 +110,14 @@
         if (cursors.up.isDown && player.body.touching.down) {
             player.setVelocityY(-330);
         }
+
+        // Check if any protein has fallen off the screen
+        proteins.children.entries.forEach((protein) => {
+            if (protein.y > config.height) {
+                protein.destroy();
+                spawnProtein(this);
+            }
+        });
     }
 
     function collectProtein(player, protein) {
@@ -126,7 +140,9 @@
     function spawnProtein(scene) {
         let x = Phaser.Math.Between(0, 800);
         let y = Phaser.Math.Between(0, 600);
-        proteins.create(x, y, 'protein');
+        let protein = proteins.create(x, y, 'protein');
+        protein.setBounce(0.4);
+        protein.setCollideWorldBounds(true);
     }
 
     function spawnPlatform(scene) {
