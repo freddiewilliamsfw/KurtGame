@@ -28,13 +28,11 @@
     let player;
     let platforms;
     let proteins;
-    let gameOver = false;
     let ground;
     let score = 0;
     let scoreText;
 
     function preload() {
-        this.load.image('ground', 'Assets/dumbell.png');
         this.load.image('dumbell', 'Assets/dumbell.png');
         this.load.image('kurt', 'Assets/kurt.png');
         this.load.image('protein', 'Assets/protein.png');
@@ -46,10 +44,10 @@
         this.add.image(400, 500, 'background');
 
         platforms = this.physics.add.staticGroup();
-        
-        // Create the ground
-        ground = platforms.create(400, 985, 'ground');
-        ground.setScale(2, 0.5).refreshBody(); // Adjust scale as needed
+
+        // Create invisible ground
+        ground = this.add.rectangle(400, 990, 800, 20, 0x000000, 0);
+        this.physics.add.existing(ground, true);
 
         // Add some floating platforms
         platforms.create(70, 120, 'dumbell');
@@ -67,6 +65,7 @@
         player.setCollideWorldBounds(true);
 
         this.physics.add.collider(player, platforms);
+        this.physics.add.collider(player, ground);
 
         // Create proteins group
         proteins = this.physics.add.group();
@@ -77,6 +76,7 @@
 
         // Add collision between proteins and platforms
         this.physics.add.collider(proteins, platforms);
+        this.physics.add.collider(proteins, ground);
 
         // Create glug music
         this.glugSound = this.sound.add('glug');
@@ -86,10 +86,6 @@
     }
 
     function update() {
-        if (gameOver) {
-            return;
-        }
-
         const cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
