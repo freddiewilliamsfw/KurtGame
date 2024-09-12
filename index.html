@@ -54,7 +54,7 @@
         this.physics.add.existing(ground, true);
 
         // Create platforms with adjusted physics bodies and new positions
-        createPlatform(this, 400, 900); // Starting platform
+        createPlatform(this, 400, 900, 2); // Starting platform
         createPlatform(this, 600, 800);
         createPlatform(this, 100, 775);
         createPlatform(this, 725, 650);
@@ -68,7 +68,7 @@
         createPlatform(this, 650, 125);
 
         // Player creation and physics
-        player = this.physics.add.sprite(400, 800, 'kurt');
+        player = this.physics.add.sprite(400, 860, 'kurt');
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
 
@@ -162,6 +162,7 @@
     }
 
     function startTimer(scene) {
+        timeLeft = 5;
         timerEvent = scene.time.addEvent({
             delay: 1000,
             callback: updateTimer,
@@ -171,8 +172,10 @@
     }
 
     function updateTimer() {
+        if (gameOver) return;
+        
         timeLeft -= 1;
-        if (timeLeft <= 0) {
+        if (timeLeft < 0) {
             gameOverHandler.call(this, player);
         }
     }
@@ -182,6 +185,8 @@
     }
 
     function gameOverHandler(player) {
+        if (gameOver) return;  // Prevent multiple calls
+
         this.physics.pause();
         player.setTint(0xff0000);
         gameOver = true;
