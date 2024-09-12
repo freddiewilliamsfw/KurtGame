@@ -13,7 +13,7 @@
             default: 'arcade',
             arcade: {
                 gravity: { y: 300 },
-                debug: false
+                debug: false // Set this to true to visualize physics bodies
             }
         },
         scene: {
@@ -50,25 +50,28 @@
         ground = this.add.rectangle(400, 990, 800, 20, 0xff0000, 0);
         this.physics.add.existing(ground, true);
 
-        // Add some floating platforms
-        platforms.create(400, 900, 'dumbell'); // Starting platform
-        platforms.create(600, 800, 'dumbell');
-        platforms.create(100, 775,'dumbell');    
-        platforms.create(725, 650, 'dumbell');
-        platforms.create(500, 500, 'dumbell');
-        platforms.create(200, 450,'dumbell');
-        platforms.create(300, 700, 'dumbell');
-        platforms.create(500, 300, 'dumbell');
-        platforms.create(100, 300, 'dumbell');    
-        platforms.create(50, 100, 'dumbell');    
-        platforms.create(400, 150, 'dumbell');    
-        platforms.create(650, 125, 'dumbell');    
-    
+        // Create platforms with adjusted physics bodies and new positions
+        createPlatform(this, 400, 900, 2); // Starting platform
+        createPlatform(this, 600, 800);
+        createPlatform(this, 100, 775);
+        createPlatform(this, 725, 650);
+        createPlatform(this, 500, 500);
+        createPlatform(this, 200, 450);
+        createPlatform(this, 300, 700);
+        createPlatform(this, 500, 300);
+        createPlatform(this, 100, 300);
+        createPlatform(this, 50, 100);
+        createPlatform(this, 400, 150);
+        createPlatform(this, 650, 125);
 
         // Player creation and physics
-        player = this.physics.add.sprite(400, 800, 'kurt');
+        player = this.physics.add.sprite(400, 860, 'kurt');
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
+
+        // Adjust player's physics body if necessary
+        player.body.setSize(player.width * 0.8, player.height * 0.9);
+        player.body.setOffset(player.width * 0.1, player.height * 0.1);
 
         this.physics.add.collider(player, platforms);
         this.physics.add.collider(player, ground, gameOverHandler, null, this);
@@ -88,6 +91,17 @@
 
         // Add score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+    }
+
+    function createPlatform(scene, x, y, scale = 1) {
+        let platform = platforms.create(x, y, 'dumbell');
+        platform.setScale(scale, 1);
+        
+        // Adjust the physics body to match the visible part of the sprite
+        platform.body.setSize(platform.width * 0.8, platform.height * 0.5);
+        platform.body.setOffset(platform.width * 0.1, platform.height * 0.25);
+        
+        platform.refreshBody();
     }
 
     function update() {
@@ -139,7 +153,7 @@
 
     function spawnProtein(scene) {
         let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(0, 800); // Lowered the maximum y to keep proteins higher
+        let y = Phaser.Math.Between(0, 800);
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
         protein.setCollideWorldBounds(true);
@@ -147,22 +161,18 @@
 
     function spawnPlatform(scene) {
         let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(100, 800); // Adjusted to match protein spawn range
-        platforms.create(x, y, 'dumbell');
+        let y = Phaser.Math.Between(100, 800);
+        createPlatform(scene, x, y);
     }
 
     function gameOverHandler(player, ground) {
         this.physics.pause();
-
         player.setTint(0xff0000);
-
         gameOver = true;
 
-        // Display game over text
         let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
         gameOverText.setOrigin(0.5);
 
-        // Add a restart button
         let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
