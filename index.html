@@ -12,7 +12,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 600 }, // Increased gravity
+                gravity: { y: 600 },
                 debug: false
             }
         },
@@ -35,8 +35,6 @@
     let gameOver = false;
     let timeLeft = 10;
     let timerEvent;
-    let gameOverText;
-    let restartButton;
     let proteinsCollected = 0;
 
     function preload() {
@@ -57,7 +55,7 @@
         this.physics.add.existing(ground, true);
 
         // Create platforms with adjusted physics bodies and new positions
-        createPlatform(this, 400, 900); // Starting platform (no scale)
+        createPlatform(this, 400, 900);
         createPlatform(this, 600, 800);
         createPlatform(this, 100, 775);
         createPlatform(this, 725, 650);
@@ -72,7 +70,7 @@
 
         // Player creation and physics
         player = this.physics.add.sprite(400, 800, 'kurt');
-        player.setBounce(0.1); // Reduced bounce for less floaty feel
+        player.setBounce(0.1);
         player.setCollideWorldBounds(true);
 
         // Adjust player's physics body if necessary
@@ -124,27 +122,26 @@
         const cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
-            player.setVelocityX(-220); // Increased horizontal speed
+            player.setVelocityX(-220);
             player.setFlipX(true);
         } else if (cursors.right.isDown) {
-            player.setVelocityX(220); // Increased horizontal speed
+            player.setVelocityX(220);
             player.setFlipX(false);
         } else {
             player.setVelocityX(0);
         }
 
         if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-450); // Adjusted jump velocity for less floaty feel
+            player.setVelocityY(-450);
         }
 
         // Update timer text
         timerText.setText('Time: ' + Math.ceil(timeLeft));
 
-        // Check if any protein has fallen off the screen
+        // Check if any protein has fallen too low
         proteins.children.entries.forEach((protein) => {
-            if (protein.y > 1000) {
-                protein.destroy();
-                spawnProtein(this);
+            if (protein.y > 950) {  // Adjust this value as needed
+                respawnProtein(this, protein);
             }
         });
     }
@@ -166,11 +163,17 @@
     }
 
     function spawnProtein(scene) {
-        let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(0, 800);
+        let x = Phaser.Math.Between(50, 750);
+        let y = Phaser.Math.Between(50, 700);
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
         protein.setCollideWorldBounds(true);
+        protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
+    }
+
+    function respawnProtein(scene, protein) {
+        protein.setPosition(Phaser.Math.Between(50, 750), Phaser.Math.Between(50, 700));
+        protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
     }
 
     function initGameState(scene) {
@@ -219,10 +222,10 @@
             timerEvent.remove();
         }
 
-        gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+        let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
         gameOverText.setOrigin(0.5);
 
-        restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
+        let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
         restartButton.setOrigin(0.5);
         restartButton.setInteractive();
         restartButton.on('pointerdown', () => {
@@ -235,17 +238,16 @@
         player.clearTint();
 
         proteins.clear(true, true);
-
         spawnProtein(scene);
 
-        if (gameOverText) gameOverText.destroy();
-        if (restartButton) restartButton.destroy();
+        scene.children.list
+            .filter(child => child.type === 'Text' && (child.text.includes('GAME OVER') || child.text.includes('Restart')))
+            .forEach(child => child.destroy());
 
         initGameState(scene);
 
         scene.physics.resume();
     }
-
     </script>
 </body>
 </html>
