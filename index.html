@@ -13,7 +13,7 @@
             default: 'arcade',
             arcade: {
                 gravity: { y: 300 },
-                debug: false // Set this to true to visualize physics bodies
+                debug: false
             }
         },
         scene: {
@@ -31,7 +31,10 @@
     let ground;
     let score = 0;
     let scoreText;
+    let timerText;
     let gameOver = false;
+    let timeLeft = 5;
+    let timerEvent;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -91,6 +94,12 @@
 
         // Add score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+
+        // Add timer text
+        timerText = this.add.text(600, 16, 'Time: 5', { fontSize: '32px', fill: '#000' });
+
+        // Start the timer
+        startTimer(this);
     }
 
     function createPlatform(scene, x, y, scale = 1) {
@@ -125,13 +134,8 @@
             player.setVelocityY(-330);
         }
 
-        // Check if any protein is too low and respawn it
-        proteins.children.entries.forEach((protein) => {
-            if (protein.y > 900) {
-                protein.destroy();
-                spawnProtein(this);
-            }
-        });
+        // Update timer text
+        timerText.setText('Time: ' + Math.ceil(timeLeft));
     }
 
     function collectProtein(player, protein) {
@@ -145,10 +149,8 @@
         // Spawn a new protein
         spawnProtein(this);
 
-        // Optionally, spawn a new platform
-        if (score % 50 === 0) {
-            spawnPlatform(this);
-        }
+        // Reset the timer
+        resetTimer(this);
     }
 
     function spawnProtein(scene) {
@@ -159,16 +161,34 @@
         protein.setCollideWorldBounds(true);
     }
 
-    function spawnPlatform(scene) {
-        let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(100, 800);
-        createPlatform(scene, x, y);
+    function startTimer(scene) {
+        timerEvent = scene.time.addEvent({
+            delay: 1000,
+            callback: updateTimer,
+            callbackScope: scene,
+            loop: true
+        });
     }
 
-    function gameOverHandler(player, ground) {
+    function updateTimer() {
+        timeLeft -= 1;
+        if (timeLeft <= 0) {
+            gameOverHandler.call(this, player);
+        }
+    }
+
+    function resetTimer(scene) {
+        timeLeft = 5;
+    }
+
+    function gameOverHandler(player) {
         this.physics.pause();
         player.setTint(0xff0000);
         gameOver = true;
+
+        if (timerEvent) {
+            timerEvent.remove();
+        }
 
         let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
         gameOverText.setOrigin(0.5);
