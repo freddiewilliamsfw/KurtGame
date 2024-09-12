@@ -12,7 +12,7 @@
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 250 },
+                gravity: { y: 300 },
                 debug: false
             }
         },
@@ -31,6 +31,7 @@
     let ground;
     let score = 0;
     let scoreText;
+    let gameOver = false;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -45,27 +46,28 @@
 
         platforms = this.physics.add.staticGroup();
 
-        // Create invisible ground
-        ground = this.add.rectangle(400, 990, 800, 20, 0x000000, 0);
+        // Create invisible deadly ground
+        ground = this.add.rectangle(400, 990, 800, 20, 0xff0000, 0);
         this.physics.add.existing(ground, true);
 
         // Add some floating platforms
+        platforms.create(400, 900, 'dumbell'); // Starting platform
         platforms.create(70, 120, 'dumbell');
         platforms.create(200, 200,'dumbell');    
         platforms.create(500, 301, 'dumbell');
-        platforms.create(750, 400, 'dumbell');
-        platforms.create(250, 900, 'dumbell');
+        platforms.create(650, 400, 'dumbell');
+        platforms.create(250, 800, 'dumbell');
         platforms.create(350, 700, 'dumbell');
         platforms.create(550, 600, 'dumbell');    
         platforms.create(200, 450,'dumbell');
 
         // Player creation and physics
-        player = this.physics.add.sprite(100, 850, 'kurt');
+        player = this.physics.add.sprite(400, 850, 'kurt');
         player.setBounce(0.2);
         player.setCollideWorldBounds(true);
 
         this.physics.add.collider(player, platforms);
-        this.physics.add.collider(player, ground);
+        this.physics.add.collider(player, ground, gameOverHandler, null, this);
 
         // Create proteins group
         proteins = this.physics.add.group();
@@ -76,7 +78,6 @@
 
         // Add collision between proteins and platforms
         this.physics.add.collider(proteins, platforms);
-        this.physics.add.collider(proteins, ground);
 
         // Create glug music
         this.glugSound = this.sound.add('glug');
@@ -86,6 +87,10 @@
     }
 
     function update() {
+        if (gameOver) {
+            return;
+        }
+
         const cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
@@ -102,9 +107,9 @@
             player.setVelocityY(-330);
         }
 
-        // Check if any protein has fallen off the screen
+        // Check if any protein is too low and respawn it
         proteins.children.entries.forEach((protein) => {
-            if (protein.y > config.height) {
+            if (protein.y > 900) {
                 protein.destroy();
                 spawnProtein(this);
             }
@@ -130,7 +135,7 @@
 
     function spawnProtein(scene) {
         let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(0, 600);
+        let y = Phaser.Math.Between(0, 800); // Lowered the maximum y to keep proteins higher
         let protein = proteins.create(x, y, 'protein');
         protein.setBounce(0.4);
         protein.setCollideWorldBounds(true);
@@ -138,8 +143,28 @@
 
     function spawnPlatform(scene) {
         let x = Phaser.Math.Between(0, 800);
-        let y = Phaser.Math.Between(100, 900);
+        let y = Phaser.Math.Between(100, 800); // Adjusted to match protein spawn range
         platforms.create(x, y, 'dumbell');
+    }
+
+    function gameOverHandler(player, ground) {
+        this.physics.pause();
+
+        player.setTint(0xff0000);
+
+        gameOver = true;
+
+        // Display game over text
+        let gameOverText = this.add.text(400, 500, 'GAME OVER', { fontSize: '64px', fill: '#000' });
+        gameOverText.setOrigin(0.5);
+
+        // Add a restart button
+        let restartButton = this.add.text(400, 600, 'Restart', { fontSize: '32px', fill: '#000' });
+        restartButton.setOrigin(0.5);
+        restartButton.setInteractive();
+        restartButton.on('pointerdown', () => {
+            this.scene.restart();
+        });
     }
 
     </script>
