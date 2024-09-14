@@ -83,7 +83,6 @@
 
         // Create proteins group
         proteins = this.physics.add.group();
-        spawnProtein(this);
 
         // Add collision between Kurt and the proteins
         this.physics.add.overlap(player, proteins, collectProtein, null, this);
@@ -125,6 +124,13 @@
 
     const cursors = this.input.keyboard.createCursorKeys();
 
+    if (currentLevel === 1) {
+    timerText.setText('');  // Hide timer in Level 1
+} else if (currentLevel === 2) {
+    timerText.setText('Time: ' + Math.ceil(timeLeft));
+    // ... rest of the Level 2 logic
+}
+        
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
         player.setFlipX(true);
@@ -164,6 +170,7 @@ function collectProtein(player, protein) {
         // Move to Level 2
         currentLevel = 2;
         levelText.setText('Level: 2');
+        proteins.clear(true, true);
         startTimer(this);
         spawnProtein(this);
     } else {
