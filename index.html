@@ -39,6 +39,9 @@
     let currentLevel = 1;
     let levelText;
     let isTimerFlashing = false;
+    let glugSound;
+    let glugShortSound;
+    let isFirstProtein = true;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -46,6 +49,7 @@
         this.load.image('protein', 'Assets/protein.png');
         this.load.image('background', 'Assets/background.png');
         this.load.audio('glug','Assets/glug.m4a');
+        this.load.audio('glugshort','Assets/glugshort.m4a');
     }
 
     function create() {
@@ -96,6 +100,7 @@
         
         // Create glug music
         this.glugSound = this.sound.add('glug');
+        this.shortglugSound = this.sound.add('shortglug');
 
         // Add score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
@@ -169,7 +174,12 @@ function collectProtein(player, protein) {
     score += 10;
     scoreText.setText('Score: ' + score);
 
-    this.glugSound.play();
+    if (isFirstProtein) {
+        glugSound.play();
+        isFirstProtein = false;
+    } else {
+        shortglugSound.play();
+    }
 
     if (currentLevel === 1) {
         // Move to Level 2
@@ -204,21 +214,22 @@ function collectProtein(player, protein) {
         protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
     }
 
-    function initGameState(scene) {
-        score = 0;
-        gameOver = false;
-        timeLeft = 10;
-        proteinsCollected = 0;
-        currentLevel = 1;
-        
-        scoreText.setText('Score: 0');
-        levelText.setText('Level: 1');
+   function initGameState(scene) {
+    score = 0;
+    gameOver = false;
+    timeLeft = 10;
+    proteinsCollected = 0;
+    currentLevel = 1;
+    isFirstProtein = true;  // Reset this flag
+    
+    scoreText.setText('Score: 0');
+    levelText.setText('Level: 1');
 
-        proteins.clear(true, true);
+    proteins.clear(true, true);
 
-        if (currentLevel === 1) {
-            timerText.setText('');
-            spawnLevelOneProtein(scene);
+    if (currentLevel === 1) {
+        timerText.setText('');  // Hide timer in Level 1
+        spawnLevelOneProtein(scene);
     } else {
         startTimer(scene);
         spawnProtein(scene);
