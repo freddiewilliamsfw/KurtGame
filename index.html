@@ -204,15 +204,14 @@ function collectProtein(player, protein) {
 
         proteins.clear(true, true);
 
-         if (currentLevel === 1) {
-        spawnLevelOneProtein(scene);
+        if (currentLevel === 1) {
+            spawnLevelOneProtein(scene);
     } else {
         startTimer(scene);
         spawnProtein(scene);
     }
 }
-    }
-
+        
     function spawnLevelOneProtein(scene) {
     let protein = proteins.create(650, 50, 'protein');
     protein.setBounce(0);
