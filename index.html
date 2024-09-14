@@ -36,6 +36,8 @@
     let timeLeft = 10;
     let timerEvent;
     let proteinsCollected = 0;
+    let currentLevel = 1;
+    let levelText;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -98,6 +100,9 @@
         // Add timer text
         timerText = this.add.text(600, 16, 'Time: 10', { fontSize: '32px', fill: '#000' });
 
+        levelText = this.add.text(400, 16, 'Level: 1', { fontSize: '32px', fill: '#000' });
+        levelText.setOrigin(0.5, 0);
+
         // Initialize game state
         initGameState(this);
     }
@@ -114,27 +119,28 @@
     }
 
     function update() {
-        if (gameOver) {
-            return;
-        }
+    if (gameOver) {
+        return;
+    }
 
-        const cursors = this.input.keyboard.createCursorKeys();
+    const cursors = this.input.keyboard.createCursorKeys();
 
-        if (cursors.left.isDown) {
-            player.setVelocityX(-160);  // Restored to previous speed
-            player.setFlipX(true);
-        } else if (cursors.right.isDown) {
-            player.setVelocityX(160);   // Restored to previous speed
-            player.setFlipX(false);
-        } else {
-            player.setVelocityX(0);
-        }
+    if (cursors.left.isDown) {
+        player.setVelocityX(-160);
+        player.setFlipX(true);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(160);
+        player.setFlipX(false);
+    } else {
+        player.setVelocityX(0);
+    }
 
-        if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-330);  // Restored to previous jump velocity
-        }
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.setVelocityY(-330);
+    }
 
-        // Update timer text
+    // Update timer text only in Level 2
+    if (currentLevel === 2) {
         timerText.setText('Time: ' + Math.ceil(timeLeft));
 
         // Check if any protein has fallen below the screen
@@ -144,15 +150,23 @@
             }
         });
     }
+}
 
-    function collectProtein(player, protein) {
-        protein.disableBody(true, true);
-        
-        score += 10;
-        scoreText.setText('Score: ' + score);
+function collectProtein(player, protein) {
+    protein.disableBody(true, true);
+    
+    score += 10;
+    scoreText.setText('Score: ' + score);
 
-        this.glugSound.play();
+    this.glugSound.play();
 
+    if (currentLevel === 1) {
+        // Move to Level 2
+        currentLevel = 2;
+        levelText.setText('Level: 2');
+        startTimer(this);
+        spawnProtein(this);
+    } else {
         // Spawn a new protein
         spawnProtein(this);
 
@@ -160,6 +174,7 @@
         proteinsCollected++;
         resetTimer(this);
     }
+}
 
     function spawnProtein(scene) {
         let x = Phaser.Math.Between(50, 750);
@@ -182,11 +197,30 @@
         gameOver = false;
         timeLeft = 10;
         proteinsCollected = 0;
+        currentLevel = 1;
         
         scoreText.setText('Score: 0');
+        levelText.setText('Level: 1');
+
+        proteins.clear(true, true);
+
+         if (currentLevel === 1) {
+        spawnLevelOneProtein(scene);
+    } else {
         startTimer(scene);
+        spawnProtein(scene);
+    }
+}
     }
 
+    function spawnLevelOneProtein(scene) {
+    let protein = proteins.create(650, 50, 'protein');
+    protein.setBounce(0);
+    protein.setCollideWorldBounds(true);
+    protein.body.setAllowGravity(false);
+    protein.body.setSize(protein.width * 0.5, protein.height * 0.9);
+}
+        
     function startTimer(scene) {
         if (timerEvent) {
             timerEvent.remove();
@@ -234,21 +268,18 @@
         });
     }
 
-    function restartGame(scene) {
-        player.setPosition(400, 800);
-        player.clearTint();
+   function restartGame(scene) {
+    player.setPosition(400, 800);
+    player.clearTint();
 
-        proteins.clear(true, true);
-        spawnProtein(scene);
+    scene.children.list
+        .filter(child => child.type === 'Text' && (child.text.includes('GAME OVER') || child.text.includes('Restart')))
+        .forEach(child => child.destroy());
 
-        scene.children.list
-            .filter(child => child.type === 'Text' && (child.text.includes('GAME OVER') || child.text.includes('Restart')))
-            .forEach(child => child.destroy());
+    initGameState(scene);
 
-        initGameState(scene);
-
-        scene.physics.resume();
-    }
+    scene.physics.resume();
+}
     </script>
 </body>
 </html>
