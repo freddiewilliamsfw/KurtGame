@@ -38,7 +38,6 @@
     let proteinsCollected = 0;
     let currentLevel = 1;
     let levelText;
-    let timerText;
     let isTimerFlashing = false;
 
     function preload() {
@@ -101,9 +100,6 @@
         // Add score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
 
-        // Add timer text
-        timerText = this.add.text(600, 16, 'Time: 10', { fontSize: '32px', fill: '#000' });
-
         levelText = this.add.text(400, 16, 'Level: 1', { fontSize: '32px', fill: '#000' });
         levelText.setOrigin(0.5, 0);
 
@@ -122,20 +118,13 @@
         platform.refreshBody();
     }
 
-    function update() {
+   function update() {
     if (gameOver) {
         return;
     }
 
     const cursors = this.input.keyboard.createCursorKeys();
 
-    if (currentLevel === 1) {
-    timerText.setText('');  // Hide timer in Level 1
-} else if (currentLevel === 2) {
-    timerText.setText('Time: ' + Math.ceil(timeLeft));
-    // ... rest of the Level 2 logic
-}
-        
     if (cursors.left.isDown) {
         player.setVelocityX(-200);
         player.setFlipX(true);
@@ -150,11 +139,8 @@
         player.setVelocityY(-350);
     }
 
-    // Update timer text only in Level 2
+    // Check if any protein has fallen below the screen (only in Level 2)
     if (currentLevel === 2) {
-        timerText.setText('Time: ' + Math.ceil(timeLeft));
-
-        // Check if any protein has fallen below the screen
         proteins.children.entries.forEach((protein) => {
             if (protein.y > 1000) {
                 respawnProtein(this, protein);
@@ -231,6 +217,7 @@ function collectProtein(player, protein) {
         proteins.clear(true, true);
 
         if (currentLevel === 1) {
+            timerText.setText('');
             spawnLevelOneProtein(scene);
     } else {
         startTimer(scene);
@@ -259,7 +246,7 @@ function collectProtein(player, protein) {
     }
 
    function updateTimer() {
-    if (gameOver) return;
+    if (gameOver || currentLevel !== 2) return;
     
     timeLeft -= 0.1;
     if (timeLeft <= 0) {
@@ -274,6 +261,20 @@ function collectProtein(player, protein) {
         isTimerFlashing = true;
         flashTimer(this);
     }
+}
+
+    function flashTimer(scene) {
+    if (!isTimerFlashing) return;
+
+    scene.tweens.add({
+        targets: timerText,
+        duration: 200,
+        repeat: -1,
+        yoyo: true,
+        onUpdate: function() {
+            timerText.setStyle({ fill: timerText.style.color === '#ff0000' ? '#000000' : '#ff0000' });
+        }
+    });
 }
 
    function resetTimer(scene) {
