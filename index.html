@@ -99,8 +99,8 @@
         timerText = this.add.text(600, 16, 'Time: 10', { fontSize: '32px', fill: '#000' });
         
         // Create glug music
-        this.glugSound = this.sound.add('glug');
-        this.shortglugSound = this.sound.add('shortglug');
+        glugSound = this.sound.add('glug');
+        glugShortSound = this.sound.add('glugshort');
 
         // Add score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
@@ -178,7 +178,7 @@ function collectProtein(player, protein) {
         glugSound.play();
         isFirstProtein = false;
     } else {
-        shortglugSound.play();
+        glugShortSound.play();
     }
 
     if (currentLevel === 1) {
