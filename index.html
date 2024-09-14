@@ -66,8 +66,8 @@
         createPlatform(this, 300, 700);
         createPlatform(this, 500, 300);
         createPlatform(this, 100, 300);
-        createPlatform(this, 50, 100);
-        createPlatform(this, 400, 150);
+        createPlatform(this, 50, 125);
+        createPlatform(this, 350, 175);
         createPlatform(this, 650, 125);
 
         // Player creation and physics
@@ -220,7 +220,7 @@ function collectProtein(player, protein) {
 }
         
     function spawnLevelOneProtein(scene) {
-    let protein = proteins.create(650, 50, 'protein');
+    let protein = proteins.create(50, 50, 'protein');
     protein.setBounce(0);
     protein.setCollideWorldBounds(true);
     protein.body.setAllowGravity(false);
