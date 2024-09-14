@@ -169,7 +169,7 @@
         protein.setCollideWorldBounds(false);  // Allow proteins to fall through the bottom
         protein.setVelocity(Phaser.Math.Between(-50, 50), Phaser.Math.Between(-50, 50));
 
-        protein.body.setSize(protein.width * 0.5);
+        protein.body.setSize(protein.width * 0.5, protein.height * 0.9);
     }
 
     function respawnProtein(scene, protein) {
