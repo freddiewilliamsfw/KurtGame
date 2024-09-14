@@ -38,6 +38,8 @@
     let proteinsCollected = 0;
     let currentLevel = 1;
     let levelText;
+    let timerText;
+    let isTimerFlashing = false;
 
     function preload() {
         this.load.image('dumbell', 'Assets/dumbell.png');
@@ -90,6 +92,9 @@
         // Add collision between proteins and platforms
         this.physics.add.collider(proteins, platforms);
 
+        // Add timer text
+        timerText = this.add.text(600, 16, 'Time: 10', { fontSize: '32px', fill: '#000' });
+        
         // Create glug music
         this.glugSound = this.sound.add('glug');
 
@@ -158,6 +163,20 @@
     }
 }
 
+function flashTimer(scene) {
+    if (!isTimerFlashing) return;
+
+    scene.tweens.add({
+        targets: timerText,
+        duration: 200,
+        repeat: -1,
+        yoyo: true,
+        onUpdate: function() {
+            timerText.setStyle({ fill: timerText.style.color === '#ff0000' ? '#000000' : '#ff0000' });
+        }
+    });
+}
+        
 function collectProtein(player, protein) {
     protein.disableBody(true, true);
     
@@ -239,18 +258,34 @@ function collectProtein(player, protein) {
         });
     }
 
-    function updateTimer() {
-        if (gameOver) return;
-        
-        timeLeft -= 0.1;
-        if (timeLeft <= 0) {
-            gameOverHandler.call(this, player);
-        }
+   function updateTimer() {
+    if (gameOver) return;
+    
+    timeLeft -= 0.1;
+    if (timeLeft <= 0) {
+        gameOverHandler.call(this, player);
     }
 
-    function resetTimer(scene) {
-        timeLeft = Math.max(10 - proteinsCollected * 0.5, 3);
+    // Update timer text
+    timerText.setText('Time: ' + Math.ceil(timeLeft));
+
+    // Start flashing when time is low (level 2)
+    if (timeLeft <= 3 && !isTimerFlashing) {
+        isTimerFlashing = true;
+        flashTimer(this);
     }
+}
+
+   function resetTimer(scene) {
+    timeLeft = Math.max(10 - proteinsCollected * 0.5, 3);
+    
+    // Stop flashing when timer is reset
+    if (isTimerFlashing) {
+        isTimerFlashing = false;
+        scene.tweens.killTweensOf(timerText);
+        timerText.setStyle({ fill: '#000000' });
+    }
+}
 
     function gameOverHandler(player) {
         if (gameOver) return;
