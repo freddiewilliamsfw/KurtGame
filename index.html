@@ -66,7 +66,7 @@
         createPlatform(this, 300, 700);
         createPlatform(this, 500, 300);
         createPlatform(this, 100, 300);
-        createPlatform(this, 50, 125);
+        createPlatform(this, 50, 165);
         createPlatform(this, 350, 175);
         createPlatform(this, 650, 125);
 
@@ -132,17 +132,17 @@
 }
         
     if (cursors.left.isDown) {
-        player.setVelocityX(-160);
+        player.setVelocityX(-200);
         player.setFlipX(true);
     } else if (cursors.right.isDown) {
-        player.setVelocityX(160);
+        player.setVelocityX(200);
         player.setFlipX(false);
     } else {
         player.setVelocityX(0);
     }
 
     if (cursors.up.isDown && player.body.touching.down) {
-        player.setVelocityY(-330);
+        player.setVelocityY(-350);
     }
 
     // Update timer text only in Level 2
@@ -220,7 +220,7 @@ function collectProtein(player, protein) {
 }
         
     function spawnLevelOneProtein(scene) {
-    let protein = proteins.create(50, 75, 'protein');
+    let protein = proteins.create(50, 110, 'protein');
     protein.setBounce(0);
     protein.setCollideWorldBounds(true);
     protein.body.setAllowGravity(false);
